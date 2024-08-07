@@ -2,14 +2,14 @@
 
 var_dump($_SERVER['REQUEST_URI']);
 
-$title = 'ピッツェリア インタープラン';
+$title = 'ピッツェリア インタープラン';//headのタイトルの中身に反映 <title></title> の中に<?= $title; ?
 
 $num = strrpos($_SERVER['REQUEST_URI'], '/');
 $filename = substr($_SERVER['REQUEST_URI'], $num  + 1);
 
 switch($filename) {
   case 'add.php':
-    $title = 'ピザの登録';
+    $title = 'ピザの登録';//タイトルに反映
     break;
 }
 

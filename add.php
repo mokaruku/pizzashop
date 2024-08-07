@@ -1,10 +1,39 @@
 <?php
+// エラーメッセージ
+$errors = [
+  'pizza' => '',
+  'chef' => '',
+];
 
-var_dump($_POST);
+//送信チェック
 if (isset($_POST['submit'])) {
-  var_dump($_POST);
-}
 
+  var_dump($_POST);
+
+  $check_keys = ['pizza', 'chef'];
+  foreach ($check_keys as $key) {
+    $_POST[$key] = trim(mb_convert_kana($_POST[$key], 's'));
+  }
+  //var_dump($_POST);
+  // 検証(必須項目)
+  if (empty($_POST['pizza'])) {
+    // echo 'ピザの名前を入力してください。';
+    $errors['pizza'] = 'ピザの名前を入力してください。';
+  } elseif (!preg_match('/^([^\x01-\x7E]|[\da-zA-Z ])+$/', $_POST['pizza'])) {
+    // echo '文字は正しく入力してください。';
+    $errors['pizza'] = '文字は正しく入力してください。';
+  }
+
+  if (empty($_POST['chef'])) {
+    echo 'シェフの名前を入力してください。';
+    // echo 'シェフの名前を入力してください。';
+    $errors['chef'] = 'シェフの名前を入力してください。';
+  } elseif (!preg_match('/^([^\x01-\x7E]|[\da-zA-Z ])+$/', $_POST['chef'])) {
+    echo '文字は正しく入力してください。';
+    // echo '文字は正しく入力してください。';
+    $errors['chef'] = '文字は正しく入力してください。';
+  }
+}
 
 require './templates/header.php';
 // include './templates/header.php';
@@ -18,10 +47,20 @@ require './templates/header.php';
           <div class="mb-3">
             <label for="pizza" class="form-label">ピザの名前</label>
             <input type="text" name="pizza" id="pizza" class="form-control">
+            <?php
+            $is_invalid = !empty($errors['pizza']) ? 'is-invalid' : '';
+            ?>
+            <input type="text" name="pizza" id="pizza" class="form-control <?= $is_invalid; ?>">
+            <p class="invalid-feedback"><?= $errors['pizza']; ?></p>
           </div>
           <div class="mb-3">
             <label for="chef" class="form-label">シェフの名前</label>
             <input type="text" name="chef" id="chef" class="form-control">
+            <?php
+            $is_invalid = !empty($errors['chef']) ? 'is-invalid' : '';
+            ?>
+            <input type="text" name="chef" id="chef" class="form-control <?= $is_invalid; ?>">
+            <p class="invalid-feedback"><?= $errors['chef']; ?></p>
           </div>
           <div class="mb-3">
             <p>トッピング</p>
@@ -58,7 +97,6 @@ require './templates/header.php';
             </div>
           </div>
           <div class="text-center">
-            <button type="submit" class="btn btn-primary">送信する</button>
             <button type="submit" class="btn btn-primary" name="submit">送信する</button>
           </div>
         </form>
