@@ -1,13 +1,21 @@
 <?php
-
 // DB接続
 require './templates/db.php';
-
+// データ削除
+if (isset($_POST['delete'])) {
+  $stmt = $db->prepare('DELETE FROM pizzas WHERE id = ?');
+  $stmt->bindValue(1, $_POST['delete']);
+  $result = $stmt->execute();
+  if ($result && $stmt->rowCount() === 1) {
+    header('location:pizza.php');
+    exit;
+  }
+}
+// データ表示
 if (isset($_GET['id'])) {
   $stmt = $db->prepare('SELECT * FROM pizzas WHERE id = ?');
   $stmt->bindValue(1, $_GET['id']);
   $result = $stmt->execute();
-
   if ($stmt->rowCount() === 0) {
     echo 'データがありません。';
   } elseif ($result) {
@@ -18,11 +26,9 @@ if (isset($_GET['id'])) {
   header('location:pizza.php');
   exit;
 }
-
 require './templates/header.php';
 // include './templates/header.php';
 ?>
-
 <main>
   <h2 class="text-center h4 my-5">Our Special Pizza</h2>
   <div class="container">
@@ -52,16 +58,38 @@ require './templates/header.php';
                   <path fill="#fcc12b" d="M36 31.03c.09 2.16 3.87 1.79 5.36 1.64c1.19-.12 4.17-.37 4.17-2.31s-2.6-1.93-4.54-1.86c-1.87.07-5.07.82-4.99 2.53m20.31-12.72c0 1.42 1.56 1.56 2.53 1.64c.97.07 2.23-.3 2.31-1.41c.07-1.12-.89-1.79-2.31-1.86c-1.49-.09-2.53.43-2.53 1.63m9.3 3.42c1.43 1.55 3.57-.52 4.32-1.49c.74-.97.89-2.46.07-3.2s-2.38.07-3.42 1.04s-1.86 2.68-.97 3.65m16.15-7.89c1.74 1.97 4.61-1.34 5.8-2.46s2.16-2.68 1.04-3.94s-3.65.52-4.61 1.64c-.97 1.11-3.35 3.5-2.23 4.76M26.92 47.25c1.69.4 2.24-1.6 2.53-3.13c.3-1.56.3-3.05-.97-3.27c-1.44-.25-2.23 1.19-2.46 2.6c-.19 1.27-.66 3.43.9 3.8" />
                 </svg>
               </div>
-              <h3 class="card-title h5 text-center"><?= $pizza['pizza']; ?></h3>
+              <h3 class="card-title h5 text-center"><?= htmlspecialchars($pizza['pizza']); ?></h3>
               <p class="card-text">
-                トッピング: <?= $pizza['topping']; ?>
+                トッピング: <?= htmlspecialchars($pizza['topping']); ?>
+                トッピング:
+                <?php if ($pizza['topping']) : ?>
+                  <?= htmlspecialchars($pizza['topping']); ?>
+                <?php endif; ?>
               </p>
               <p class="card-text">
-                シェフ: <?= $pizza['chef'];  ?>
+                シェフ: <?= htmlspecialchars($pizza['chef']);  ?>
+              </p>
+              <p class="card-text">
+                登録日: <?= htmlspecialchars($pizza['created_at']); ?>
               </p>
             </div>
             <div class="card-footer text-end">
-              登録日: <?= $pizza['created_at']; ?>
+            <div class="card-footer text-end d-flex justify-content-end align-items-start gap-2">
+              <a href="update.php?id=<?= htmlspecialchars($pizza['id']); ?>" class="btn btn-primary">編集</a>
+
+              <form action="" method="post" id="delete-form">
+                <input type="hidden" value="<?= htmlspecialchars($pizza['id']); ?>" name="delete">
+                <button class="btn btn-danger">削除</button>
+              </form>
+              <script>
+                const deleteForm = document.querySelector('#delete-form')
+                deleteForm.addEventListener('submit', e => {
+                  e.preventDefault() //送信(submit)阻止
+                  if (confirm('データを削除しますが、よろしいですか？')) {
+                    deleteForm.submit() //送信
+                  }
+                })
+              </script>
             </div>
           </div>
         </div>
@@ -71,7 +99,6 @@ require './templates/header.php';
     </div>
   </div>
 </main>
-
 <?php
 require './templates/footer.php';
 ?>

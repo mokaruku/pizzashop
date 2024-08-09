@@ -1,11 +1,6 @@
 <?php
-
-session_start();
-
-
 // DB接続
 require './templates/db.php';
-
 // エラーメッセージ
 $errors = [
   'pizza' => '',
@@ -14,11 +9,13 @@ $errors = [
 // 入力値再反映用
 $pizza = '';
 $chef = '';
+$topping = []; //追加
 // チェックボックス用関数
 function checkbox_value_exists($value)
 {
-  if (!array_key_exists('topping', $_POST)) return;
-  if (in_array($value, $_POST['topping'])) {
+  global $topping;
+  // if (!array_key_exists('topping', $topping)) return; //削除
+  if (in_array($value, $topping)) {
     echo 'checked';
   }
 }
@@ -45,28 +42,39 @@ if (isset($_POST['submit'])) {
     // echo '文字は正しく入力してください。';
     $errors['chef'] = '文字は正しく入力してください。';
   }
+  // トッピングの存在チェック
+  if (array_key_exists('topping', $_POST)) {
+    $topping = $_POST['topping'];
+  }
   // エラーチェック(エラーなければ)
   if (!array_filter($errors)) {
     // トッピングの存在チェック
-    if (array_key_exists('topping', $_POST)) {
-      $topping = implode(',', $_POST['topping']);
-      $sql = 'INSERT INTO pizzas (pizza, chef, topping) VALUES (?, ?, ?)';
+    if (!empty($topping)) {
+      $toppingStr = implode(',', $topping);
+      $sql = '
+        UPDATE pizzas
+        SET pizza = ?, chef = ?, topping = ?
+        WHERE id = ?
+      ';
     } else {
-      $sql = 'INSERT INTO pizzas (pizza, chef) VALUES (?, ?)';
+      $sql = '
+        UPDATE pizzas
+        SET pizza = ?, chef = ?, topping = NULL
+        WHERE id = ?
+      ';
     }
     // DBへの登録
     $stmt = $db->prepare($sql);
     $stmt->bindValue(1, $_POST['pizza']);
     $stmt->bindValue(2, $_POST['chef']);
-    if (isset($topping)) {
-      $stmt->bindValue(3, $topping);
+    if (!empty($topping)) {
+      $stmt->bindValue(3, $toppingStr);
+      $stmt->bindValue(4, $_POST['id']);
+    } else {
+      $stmt->bindValue(3, $_POST['id']);
     }
     $result = $stmt->execute(); //true | false
-
     if ($result) {
-      // フラッシュメッセージ作成
-      $_SESSION['flash_message'] = 'ピザを登録しました。';
-
       // リダイレクト
       header('Location:pizza.php');
       exit; // die;
@@ -74,6 +82,25 @@ if (isset($_POST['submit'])) {
       echo 'DBへの登録に失敗しました。';
     }
   }
+}
+// 通常のページ表示
+elseif (isset($_GET['id'])) {
+  $stmt = $db->prepare('SELECT * FROM pizzas WHERE id = ?');
+  $stmt->bindValue(1, $_GET['id']);
+  $result = $stmt->execute();
+  if ($result && $stmt->rowCount() === 1) {
+    $pizzaData = $stmt->fetch();
+    $pizza = $pizzaData['pizza'];
+    $chef = $pizzaData['chef'];
+    if (!is_null($pizzaData['topping'])) {
+      $topping = explode(',', $pizzaData['topping']);
+    }
+  }
+}
+// idチェック(なかったらトップページへリダイレクト)
+else {
+  header('Location:pizza.php');
+  exit;
 }
 require './templates/header.php';
 // include './templates/header.php';
@@ -135,6 +162,7 @@ require './templates/header.php';
             </div>
           </div>
           <div class="text-center">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($_GET['id']); ?>">
             <button type="submit" class="btn btn-primary" name="submit">送信する</button>
           </div>
         </form>
@@ -145,4 +173,3 @@ require './templates/header.php';
 <?php
 require './templates/footer.php';
 ?>
-

@@ -1,6 +1,11 @@
 <?php
+
+session_start();
+
+
 // DB接続
 require './templates/db.php';
+
 $sql = 'SELECT id, pizza, topping FROM pizzas ORDER BY created_at DESC';
 $result = $db->query($sql);
 if ($result) {
@@ -9,6 +14,17 @@ if ($result) {
 require './templates/header.php';
 // include './templates/header.php';
 ?>
+
+<?php if (isset($_SESSION['flash_message'])) : ?>
+  <div class="container mt-4">
+    <div class="alert alert-success" role="alert">
+      <?= htmlspecialchars($_SESSION['flash_message']); ?>
+    </div>
+  </div>
+<?php
+  unset($_SESSION['flash_message']);
+endif; ?>
+
 <main>
   <h2 class="text-center h4 my-5">Our Special Pizza</h2>
   <div class="container">
@@ -39,10 +55,13 @@ require './templates/header.php';
                     <path fill="#fcc12b" d="M36 31.03c.09 2.16 3.87 1.79 5.36 1.64c1.19-.12 4.17-.37 4.17-2.31s-2.6-1.93-4.54-1.86c-1.87.07-5.07.82-4.99 2.53m20.31-12.72c0 1.42 1.56 1.56 2.53 1.64c.97.07 2.23-.3 2.31-1.41c.07-1.12-.89-1.79-2.31-1.86c-1.49-.09-2.53.43-2.53 1.63m9.3 3.42c1.43 1.55 3.57-.52 4.32-1.49c.74-.97.89-2.46.07-3.2s-2.38.07-3.42 1.04s-1.86 2.68-.97 3.65m16.15-7.89c1.74 1.97 4.61-1.34 5.8-2.46s2.16-2.68 1.04-3.94s-3.65.52-4.61 1.64c-.97 1.11-3.35 3.5-2.23 4.76M26.92 47.25c1.69.4 2.24-1.6 2.53-3.13c.3-1.56.3-3.05-.97-3.27c-1.44-.25-2.23 1.19-2.46 2.6c-.19 1.27-.66 3.43.9 3.8" />
                   </svg>
                 </div>
-                <h3 class="card-title h5"><?= $pizza['pizza']; ?></h3>
-                <p class="card-text"><?= $pizza['topping']; ?></p>
-                <a href="" class="btn btn-primary">詳細</a>
-                <a href="detail.php?id=<?= $pizza['id']; ?>" class="btn btn-primary">詳細</a>
+                <h3 class="card-title h5"><?= htmlspecialchars($pizza['pizza']); ?></h3>
+                <p class="card-text">
+                  <?php if ($pizza['topping']) : ?>
+                    <?= htmlspecialchars($pizza['topping']); ?>
+                  <?php endif; ?>
+                </p>
+                <a href="detail.php?id=<?= htmlspecialchars($pizza['id']); ?>" class="btn btn-primary">詳細</a>
               </div>
             </div>
           </div>

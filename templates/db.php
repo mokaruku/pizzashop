@@ -1,7 +1,6 @@
 <?php 
- ?>try {
-  $dsn = 'mysql:host=localhost;
-  dbname=pizza_interplan;charset=utf8';
+ try {
+  $dsn = 'mysql:host=localhost;dbname=pizza_interplan;charset=utf8';
   $user = 'pizzarumo';
   $pass = '2024.rumo';
   $option = [
